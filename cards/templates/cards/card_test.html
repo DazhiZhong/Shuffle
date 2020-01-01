@@ -1,0 +1,81 @@
+{% extends "cards/base.html" %}
+{% load crispy_forms_tags%}
+{% block content %}
+<div class="container">
+    <div class="col col-lg-1">
+    </div>
+    <div class="col col-lg">
+        <div class="card text-white text-center bg-primary" style="max-width: 95%;">
+            <div class="card-header">
+                <i>Shuffle</i>
+            </div>
+        <div class="card-body">
+            <h5 class="card-title">{{ card.title }}
+            <span class="badge badge-pill badge-info"  id='showtime'> 00:00 </span></h5>
+            <p class="card-text">{{ card.txt}}</p>
+
+            <form method="POST" action="#"> {% csrf_token %}
+                <button  class="btn badge-pill btn-light" name="defer">Defer</button>
+                <button  class="btn badge-pill btn-light" name="done">Done</button>
+                <a href="#" id='time' class="btn badge-pill btn-dark"> +5:00</a>
+            </form>
+            
+        </div>
+            <div class="card-footer text-white">
+                <span class="small">Tags:</span>
+                {% for tag in tags %}
+                    <span class="badge badge-pill badge-light">{{ tag }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col col-lg-1">
+    </div>
+</div>
+<script>
+$("#done").click(function(e){
+    //e.preventDefault();
+    $.get({url: "{% url 'cards_change' %}", function(result){
+        console.log('success');
+    }});
+});
+
+function loop() {
+        
+        diff = settime - (((Date.now() - start) / 1000) | 0);
+        displaytime(diff) ;
+}
+function loopdisplay() {
+    
+    loop();
+    
+    setInterval(loop, 1000);
+}
+
+function displaytime(diff) {
+        
+        
+        
+        // does the same job as parseInt truncates the float
+        minutes = (diff / 60) | 0;
+        seconds = (diff % 60) | 0;
+        
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        display.textContent = minutes + ":" + seconds; 
+        
+       
+}
+settime = 900;
+diff = 0;
+timelapsed = 0;
+start = Date.now();
+fiveMinutes = 60 * 5
+display = document.querySelector('#showtime');
+loopdisplay();
+$('body').on('click', '#time', function () {
+    settime += 300;
+    loop();
+});
+</script>
+{% endblock content %}
