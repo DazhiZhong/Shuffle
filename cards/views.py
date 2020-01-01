@@ -11,12 +11,19 @@ cur  = object()
 old_pk = 0
 no_cards = False
 
-
+def filtercards(hashtag):
+    allcards = Card.objects.all()
+    ok_cards = []
+    for card in allcards:
+        if hashtag in card.tags:
+            ok_cards.append(card)
+    print(ok_cards)
+    return ok_cards
 
 def makedict(**kwargs):
     return kwargs
 
-def help(request):
+def create(request):
 
     context = {}
     if request.POST:
@@ -45,7 +52,34 @@ def help(request):
             
     
     return render(request,"cards/create.html",context=context)
-    
+
+
+def tagview(request, tag): 
+    try:
+        cards = filtercards(tag)
+    except:
+        return redirect('cards_see')
+    if len(cards) == 0:
+        return redirect('cards_see')
+    if tag not in cur.tags:
+        loadcurrent(tag=tag)
+    if request.POST:
+        keys = request.POST.keys()
+        if 'defer' in keys:
+            if cur.title == "No Cards":
+                Card.objects.get(pk=cur.pk).delete()
+            loadcurrent(tag=tag)
+        if 'done' in keys:
+            changecurrent(tag=tag)
+        return redirect('cards_tag', tag=tag)
+    context = makedict(card=cur, tags=[])
+    tags = cur.tags.split(' ')
+    for tag in tags:
+        context['tags'].append(tag)
+    return render(request,"cards/card_test.html",context=context)
+
+  
+
 
 def see_card(request):
     global cur
@@ -62,10 +96,9 @@ def see_card(request):
     tags = cur.tags.split(' ')
     for tag in tags:
         context['tags'].append(tag)
-
     return render(request,"cards/card_test.html",context=context)
 
-def changecurrent():
+def changecurrent(tag = None):
     global cur,  old_pk,no_cards
     Card.objects.get(pk=cur.pk).delete()
     cd = Card.objects.all()
@@ -75,8 +108,12 @@ def changecurrent():
         print("c-c-2")
         new_pk = random.randint(0,len(cd)-1)
         if len(cd) >= 2:
-            while new_pk == old_pk:
-                new_pk = random.randint(0,len(cd)-1)
+            if tag == None:
+                while new_pk == old_pk:
+                    new_pk = random.randint(0,len(cd)-1)
+            else:
+                while new_pk == old_pk and not (tag in cur.tags):
+                    new_pk = random.randint(0,len(cd)-1)
         old_pk  =  new_pk
         cur = cd[old_pk]
     else:
@@ -84,7 +121,7 @@ def changecurrent():
         create_default_card()
     #print(cur)
 
-def loadcurrent():
+def loadcurrent(tag = None):
     global cur, old_pk, no_cards
     cd = Card.objects.all()
     print("l-c-1")
@@ -92,8 +129,12 @@ def loadcurrent():
         print("l-c-2")
         new_pk = random.randint(0,len(cd)-1)
         if len(cd) >= 2:
-            while new_pk == old_pk:
-                new_pk = random.randint(0,len(cd)-1)
+            if tag == None:
+                while new_pk == old_pk:
+                    new_pk = random.randint(0,len(cd)-1)
+            else:
+                while new_pk == old_pk and not (tag in cur.tags):
+                    new_pk = random.randint(0,len(cd)-1)
         old_pk  =  new_pk
         cur = cd[old_pk]
     else:
