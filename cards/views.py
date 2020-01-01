@@ -12,6 +12,9 @@ old_pk = 0
 no_cards = False
 
 def filtercards(hashtag):
+    """
+    filters cards using hashtag, card.tag stores tags like "#sth #tag #tag"
+    """
     allcards = Card.objects.all()
     ok_cards = []
     for card in allcards:
@@ -20,11 +23,18 @@ def filtercards(hashtag):
     print(ok_cards)
     return ok_cards
 
+
 def makedict(**kwargs):
+    # makedict(name='damn') -> {'name':'damn'}
     return kwargs
 
 def create(request):
-
+    """
+    no form, parse the lines of info
+    the POST is like {'0':'sth', '1':'sth'}, text linside the line is 
+    formatted like 'title - txt #tag #tag'
+    parse through the lines, and manually add them to Cards db
+    """
     context = {}
     if request.POST:
         print(request.POST)
@@ -55,6 +65,10 @@ def create(request):
 
 
 def tagview(request, tag): 
+    """
+    name = cards_tag
+    same to cards_see, but adds tags, if current is not the same tag it will be deferred
+    """
     try:
         cards = filtercards(tag)
     except:
@@ -82,6 +96,12 @@ def tagview(request, tag):
 
 
 def see_card(request):
+    """
+    name = cards_see
+    shows card, POST can have 'defer' or 'done' 
+    defer shows another card, done deletes it and shows another
+    context includes card, and tags, tags are put in a list
+    """
     global cur
     if request.POST:
         keys = request.POST.keys()
@@ -122,6 +142,10 @@ def changecurrent(tag = None):
     #print(cur)
 
 def loadcurrent(tag = None):
+    """
+    load current same as change current but does not delete current card
+    picks cur from Card.objects.all() using random
+    """
     global cur, old_pk, no_cards
     cd = Card.objects.all()
     print("l-c-1")
@@ -143,6 +167,9 @@ def loadcurrent(tag = None):
 
 
 def create_default_card():
+    """
+    self explanatory
+    """
     global cur, no_cards
     a = Card()
     a.txt = "you have no cards yet!"
